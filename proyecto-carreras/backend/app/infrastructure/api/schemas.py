@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class CarreraBase(BaseModel):
@@ -24,3 +26,39 @@ class CarreraRespuesta(CarreraBase):
 
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+
+
+class UsuarioCrear(BaseModel):
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=72)
+    nombre: str = Field(min_length=2, max_length=150)
+    email: EmailStr
+
+
+class UsuarioActualizar(BaseModel):
+    username: str = Field(min_length=3, max_length=50)
+    nombre: str = Field(min_length=2, max_length=150)
+    email: EmailStr
+    password: Optional[str] = Field(default=None, min_length=6, max_length=72)
+
+
+class UsuarioRespuesta(BaseModel):
+    """Nunca incluye el password, ni siquiera el hash."""
+    id: int
+    username: str
+    nombre: str
+    email: EmailStr
+    model_config = ConfigDict(from_attributes=True)
+
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginRespuesta(BaseModel):
+    mensaje: str
+    usuario: UsuarioRespuesta
