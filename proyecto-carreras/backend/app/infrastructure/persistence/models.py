@@ -18,3 +18,13 @@ class CarreraModel(Base):
     es_acreditada = Column(Boolean, nullable=False, default=False)
     perfiles = Column(Text, nullable=False)
     area_conocimiento = Column(String(100), nullable=False)
+
+
+class UsuarioModel(Base):
+    __tablename__ = "usuarios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), nullable=False, unique=True, index=True)
+    password = Column(String(255), nullable=False)   # aquí se guarda el HASH
+    nombre = Column(String(150), nullable=False)
+    email = Column(String(150), nullable=False, unique=True, index=True)
