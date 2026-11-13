@@ -1,3 +1,6 @@
+import secrets
+import string
+from dataclasses import dataclass
 from typing import List, Optional
 
 from app.domain.entities.usuario import Usuario
@@ -6,6 +9,17 @@ from app.domain.exceptions import (
     UsuarioDuplicado,
     UsuarioNoEncontrado,
 )
+from app.domain.ports.password_hasher import PasswordHasher
+from app.domain.ports.usuario_repository import UsuarioRepository
+
+from app.domain.entities.usuario import Usuario
+from app.domain.exceptions import (
+    CredencialesInvalidas,
+    ErrorEnvioCorreo,
+    UsuarioDuplicado,
+    UsuarioNoEncontrado,
+)
+from app.domain.ports.email_sender import EmailSender
 from app.domain.ports.password_hasher import PasswordHasher
 from app.domain.ports.usuario_repository import UsuarioRepository
 
@@ -101,7 +115,6 @@ class Login:
             raise CredencialesInvalidas()
         return usuario
 
-@dataclass
 class ResultadoReporteUsuarios:
     total: int
     usuarios: List[Usuario]
@@ -123,3 +136,47 @@ class ReporteUsuariosPorDominio:
     def ejecutar(self, dominio: str) -> ResultadoReporteUsuarios:
         usuarios = self.repo.listar_por_dominio_email(dominio)
         return ResultadoReporteUsuarios(total=len(usuarios), usuarios=usuarios)
+
+class RecordarClave:
+    def __init__(
+        self,
+        repo: UsuarioRepository,
+        hasher: PasswordHasher,
+        email_sender: EmailSender,
+    ):
+        self.repo = repo
+        self.hasher = hasher
+        self.email_sender = email_sender
+
+    @staticmethod
+    def _generar_clave(longitud: int = 10) -> str:
+        # Sin caracteres ambiguos (0/O, 1/l/I) para que sea fácil de leer
+        alfabeto = "".join(
+            c for c in string.ascii_letters + string.digits if c not in "0O1lI"
+        )
+        return "".join(secrets.choice(alfabeto) for _ in range(longitud))
+
+    def ejecutar(self, email: str) -> None:
+        usuario = self.repo.obtener_por_email(email.strip().lower())
+        if usuario is None:
+            return  # silencio a propósito: no revelamos si el correo existe
+
+        clave_temporal = self._generar_clave()
+        hash_anterior = usuario.password
+        usuario.password = self.hasher.hashear(clave_temporal)
+        self.repo.actualizar(usuario)
+
+        cuerpo = (
+            f"Hola {usuario.nombre},\n\n"
+            f"Recibimos una solicitud para recuperar tu clave.\n"
+            f"Tu clave temporal es: {clave_temporal}\n\n"
+            f"Inicia sesión con ella y cámbiala lo antes posible.\n"
+            f"Si no fuiste tú, avisa al administrador."
+        )
+        try:
+            self.email_sender.enviar(usuario.email, "Recuperación de clave", cuerpo)
+        except ErrorEnvioCorreo:
+            # Si el correo no salió, se restaura la clave anterior
+            usuario.password = hash_anterior
+            self.repo.actualizar(usuario)
+            raise

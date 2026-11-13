@@ -22,3 +22,10 @@ class UsuarioDuplicado(Exception):
 class CredencialesInvalidas(Exception):
     def __init__(self):
         super().__init__("Usuario o contraseña incorrectos")
+
+
+class ErrorEnvioCorreo(Exception):
+    """Falló el envío de un correo electrónico."""
+
+    def __init__(self, detalle: str = ""):
+        super().__init__(f"No fue posible enviar el correo. {detalle}".strip())

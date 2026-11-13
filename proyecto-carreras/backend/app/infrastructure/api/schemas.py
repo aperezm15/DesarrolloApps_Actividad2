@@ -75,3 +75,10 @@ class ReporteCarrerasRespuesta(BaseModel):
 class ReporteUsuariosRespuesta(BaseModel):
     total: int
     usuarios: List[UsuarioRespuesta]
+
+class RecuperarClaveRequest(BaseModel):
+    email: EmailStr
+
+
+class MensajeRespuesta(BaseModel):
+    mensaje: str
