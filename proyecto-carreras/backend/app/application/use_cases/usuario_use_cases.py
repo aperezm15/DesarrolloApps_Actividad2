@@ -100,3 +100,26 @@ class Login:
         if usuario is None or not self.hasher.verificar(password, usuario.password):
             raise CredencialesInvalidas()
         return usuario
+
+@dataclass
+class ResultadoReporteUsuarios:
+    total: int
+    usuarios: List[Usuario]
+
+
+class ReporteUsuariosPorNombre:
+    def __init__(self, repo: UsuarioRepository):
+        self.repo = repo
+
+    def ejecutar(self, nombre: str) -> ResultadoReporteUsuarios:
+        usuarios = self.repo.buscar_por_nombre(nombre)
+        return ResultadoReporteUsuarios(total=len(usuarios), usuarios=usuarios)
+
+
+class ReporteUsuariosPorDominio:
+    def __init__(self, repo: UsuarioRepository):
+        self.repo = repo
+
+    def ejecutar(self, dominio: str) -> ResultadoReporteUsuarios:
+        usuarios = self.repo.listar_por_dominio_email(dominio)
+        return ResultadoReporteUsuarios(total=len(usuarios), usuarios=usuarios)

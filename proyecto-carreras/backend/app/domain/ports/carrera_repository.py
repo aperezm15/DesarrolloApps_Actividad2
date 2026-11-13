@@ -21,3 +21,13 @@ class CarreraRepository(ABC):
 
     @abstractmethod
     def eliminar(self, carrera_id: int) -> bool: ...
+
+    @abstractmethod
+    def listar_por_nivel(
+        self, nivel_formacion: str, valor_semestre_max: Optional[float] = None
+    ) -> List[Carrera]: ...
+
+    @abstractmethod
+    def listar_por_acreditacion(
+        self, es_acreditada: bool, universidad: Optional[str] = None
+    ) -> List[Carrera]: ...

@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from typing import List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.domain.entities.carrera import Carrera
@@ -65,3 +66,27 @@ class CarreraRepositorySQL(CarreraRepository):
         self.db.delete(modelo)
         self.db.commit()
         return True
+
+    def listar_por_nivel(
+        self, nivel_formacion: str, valor_semestre_max: Optional[float] = None
+    ) -> List[Carrera]:
+        consulta = self.db.query(CarreraModel).filter(
+            func.lower(CarreraModel.nivel_formacion) == nivel_formacion.strip().lower()
+        )
+        if valor_semestre_max is not None:
+            consulta = consulta.filter(CarreraModel.valor_semestre <= valor_semestre_max)
+        modelos = consulta.order_by(CarreraModel.nombre).all()
+        return [self._a_entidad(m) for m in modelos]
+
+    def listar_por_acreditacion(
+        self, es_acreditada: bool, universidad: Optional[str] = None
+    ) -> List[Carrera]:
+        consulta = self.db.query(CarreraModel).filter(
+            CarreraModel.es_acreditada == es_acreditada
+        )
+        if universidad and universidad.strip():
+            consulta = consulta.filter(
+                CarreraModel.universidad.ilike(f"%{universidad.strip()}%")
+            )
+        modelos = consulta.order_by(CarreraModel.nombre).all()
+        return [self._a_entidad(m) for m in modelos]

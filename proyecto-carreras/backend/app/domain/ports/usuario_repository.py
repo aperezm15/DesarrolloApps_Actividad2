@@ -26,3 +26,9 @@ class UsuarioRepository(ABC):
 
     @abstractmethod
     def eliminar(self, usuario_id: int) -> bool: ...
+
+    @abstractmethod
+    def buscar_por_nombre(self, nombre: str) -> List[Usuario]: ...
+
+    @abstractmethod
+    def listar_por_dominio_email(self, dominio: str) -> List[Usuario]: ...

@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-
+#Carrera
 class CarreraBase(BaseModel):
     nombre: str = Field(min_length=3, max_length=150)
     num_creditos: int = Field(gt=0)
@@ -29,7 +29,7 @@ class CarreraRespuesta(CarreraBase):
 
 
 
-
+#Usuario
 class UsuarioCrear(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=6, max_length=72)
@@ -53,7 +53,7 @@ class UsuarioRespuesta(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-
+# Autenticacion
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -62,3 +62,16 @@ class LoginRequest(BaseModel):
 class LoginRespuesta(BaseModel):
     mensaje: str
     usuario: UsuarioRespuesta
+
+
+
+# Reportes
+class ReporteCarrerasRespuesta(BaseModel):
+    total: int
+    promedio_valor_semestre: float
+    carreras: List[CarreraRespuesta]
+
+
+class ReporteUsuariosRespuesta(BaseModel):
+    total: int
+    usuarios: List[UsuarioRespuesta]

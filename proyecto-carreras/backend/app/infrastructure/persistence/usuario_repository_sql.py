@@ -68,3 +68,22 @@ class UsuarioRepositorySQL(UsuarioRepository):
         self.db.delete(modelo)
         self.db.commit()
         return True
+
+    def buscar_por_nombre(self, nombre: str) -> List[Usuario]:
+        modelos = (
+            self.db.query(UsuarioModel)
+            .filter(UsuarioModel.nombre.ilike(f"%{nombre.strip()}%"))
+            .order_by(UsuarioModel.nombre)
+            .all()
+        )
+        return [self._a_entidad(m) for m in modelos]
+
+    def listar_por_dominio_email(self, dominio: str) -> List[Usuario]:
+        dominio = dominio.strip().lower().lstrip("@")
+        modelos = (
+            self.db.query(UsuarioModel)
+            .filter(UsuarioModel.email.ilike(f"%@{dominio}"))
+            .order_by(UsuarioModel.email)
+            .all()
+        )
+        return [self._a_entidad(m) for m in modelos]

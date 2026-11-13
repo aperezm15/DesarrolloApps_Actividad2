@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.application.use_cases.usuario_use_cases import (
@@ -22,6 +22,22 @@ from app.infrastructure.api.schemas import (
 from app.infrastructure.persistence.database import get_db
 from app.infrastructure.persistence.usuario_repository_sql import UsuarioRepositorySQL
 from app.infrastructure.security.bcrypt_hasher import BcryptHasher
+
+from app.application.use_cases.usuario_use_cases import (
+    ActualizarUsuario,
+    CrearUsuario,
+    EliminarUsuario,
+    ListarUsuarios,
+    ObtenerUsuario,
+    ReporteUsuariosPorDominio,
+    ReporteUsuariosPorNombre,
+)
+from app.infrastructure.api.schemas import (
+    ReporteUsuariosRespuesta,
+    UsuarioActualizar,
+    UsuarioCrear,
+    UsuarioRespuesta,
+)
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
@@ -88,3 +104,18 @@ def eliminar_usuario(usuario_id: int, repo: UsuarioRepository = Depends(get_repo
     except UsuarioNoEncontrado as e:
         raise HTTPException(status_code=404, detail=str(e))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/reportes/por-nombre", response_model=ReporteUsuariosRespuesta)
+def reporte_por_nombre(
+    nombre: str = Query(..., min_length=1),
+    repo: UsuarioRepository = Depends(get_repo),
+):
+    return ReporteUsuariosPorNombre(repo).ejecutar(nombre)
+
+
+@router.get("/reportes/por-dominio", response_model=ReporteUsuariosRespuesta)
+def reporte_por_dominio(
+    dominio: str = Query(..., min_length=3, description="Ej: gmail.com"),
+    repo: UsuarioRepository = Depends(get_repo),
+):
+    return ReporteUsuariosPorDominio(repo).ejecutar(dominio)
