@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.application.use_cases.usuario_use_cases import Login, RecordarClave
@@ -39,7 +43,8 @@ def recuperar_clave(
 ):
     try:
         RecordarClave(repo, hasher, email_sender).ejecutar(datos.email)
-    except ErrorEnvioCorreo:
+    except ErrorEnvioCorreo as e:
+        logger.error("Fallo el envío de correo: %s", e)
         raise HTTPException(
             status_code=503,
             detail="No fue posible enviar el correo. Intenta más tarde.",
